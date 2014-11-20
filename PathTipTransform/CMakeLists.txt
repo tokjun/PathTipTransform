@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME TransformConverterDemo)
+set(MODULE_NAME PathTipTransform)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS

@@ -3,12 +3,12 @@ import unittest
 from __main__ import vtk, qt, ctk, slicer
 
 #
-# TransformConverterDemo
+# PathTipTransform
 #
 
-class TransformConverterDemo:
+class PathTipTransform:
   def __init__(self, parent):
-    parent.title = "TransformConverterDemo" # TODO make this more human readable by adding spaces
+    parent.title = "PathTipTransform" # TODO make this more human readable by adding spaces
     parent.categories = ["Examples"]
     parent.dependencies = []
     parent.contributors = ["Junichi Tokuda (BWH)"] # replace with "Firstname Lastname (Org)"
@@ -22,10 +22,10 @@ class TransformConverterDemo:
 
 
 #
-# qTransformConverterDemoWidget
+# qPathTipTransformWidget
 #
 
-class TransformConverterDemoWidget:
+class PathTipTransformWidget:
   def __init__(self, parent = None):
     if not parent:
       self.parent = slicer.qMRMLWidget()
@@ -37,7 +37,7 @@ class TransformConverterDemoWidget:
     if not parent:
       self.setup()
       self.parent.show()
-    self.logic = TransformConverterDemoLogic()
+    self.logic = PathTipTransformLogic()
 
   def setup(self):
     # Instantiate and connect widgets ...
@@ -55,7 +55,7 @@ class TransformConverterDemoWidget:
     #  your module to users)
     self.reloadButton = qt.QPushButton("Reload")
     self.reloadButton.toolTip = "Reload this module."
-    self.reloadButton.name = "TransformConverterDemo Reload"
+    self.reloadButton.name = "PathTipTransform Reload"
     reloadFormLayout.addWidget(self.reloadButton)
     self.reloadButton.connect('clicked()', self.onReload)
 
@@ -132,7 +132,7 @@ class TransformConverterDemoWidget:
       self.logic.deactivateEvent()
       self.EnableCheckBox.setCheckState(False)
 
-  def onReload(self,moduleName="TransformConverterDemo"):
+  def onReload(self,moduleName="PathTipTransform"):
     """Generic reload method for any scripted module.
     ModuleWizard will subsitute correct default moduleName.
     """
@@ -140,10 +140,10 @@ class TransformConverterDemoWidget:
 
 
 #
-# TransformConverterDemoLogic
+# PathTipTransformLogic
 #
 
-class TransformConverterDemoLogic:
+class PathTipTransformLogic:
   """This class should implement all the actual 
   computation done by your module.  The interface 
   should be such that other python code can import
