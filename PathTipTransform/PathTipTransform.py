@@ -73,7 +73,7 @@ class PathTipTransformWidget:
     # Target point (vtkMRMLMarkupsFiducialNode)
     #
     self.SourceSelector = slicer.qMRMLNodeComboBox()
-    self.SourceSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
+    self.SourceSelector.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
     self.SourceSelector.addEnabled = False
     self.SourceSelector.removeEnabled = False
     self.SourceSelector.noneEnabled = True
@@ -151,31 +151,74 @@ class PathTipTransformLogic:
   requiring an instance of the Widget
   """
   def __init__(self):
-    self.SourceTransformNode = None
+    #self.SourceTransformNode = None
+    self.SourceFiducialNode = None
     self.DestinationTransformNode = None
     self.tag = 0;
 
   def convertTransform(self, caller, event):
-    if (caller.IsA('vtkMRMLLinearTransformNode') and event == 'ModifiedEvent'):
-      src = self.SourceTransformNode.GetMatrixTransformToParent()
-      dest = self.DestinationTransformNode.GetMatrixTransformToParent()
+    if (caller.IsA('vtkMRMLMarkupsFiducialNode') and event == 'ModifiedEvent'):
+      nFiducials = self.SourceFiducialNode.GetNumberOfFiducials();
+      if nFiducials >= 2:
+        pos0 = [0.0, 0.0, 0.0, 0.0]
+        pos1 = [0.0, 0.0, 0.0, 0.0]
+        #self.SourceFiducialNode.GetNthFiducialPosition(nFiducials-2, pos0);
+        #self.SourceFiducialNode.GetNthFiducialPosition(nFiducials-1, pos1);
+        self.SourceFiducialNode.GetNthFiducialWorldCoordinates(nFiducials-2, pos0)
+        self.SourceFiducialNode.GetNthFiducialWorldCoordinates(nFiducials-1, pos1)
+        
+        nz = vtk.vtkVector3d()
+        nz.SetX(pos1[0]-pos0[0])
+        nz.SetY(pos1[1]-pos0[1])
+        nz.SetZ(pos1[2]-pos0[2])
+        nz.Normalize()
 
-      matrix = vtk.vtkMatrix4x4()
-      matrix.DeepCopy(dest)
-      matrix.SetElement(0, 3, src.GetElement(0,3)) 
-      matrix.SetElement(1, 3, src.GetElement(1,3))
-      matrix.SetElement(2, 3, src.GetElement(2,3))
-      dest.DeepCopy(matrix)
+        ny = vtk.vtkVector3d()
+        ny.SetX(0.0)
+        ny.SetY(0.0)
+        ny.SetZ(1.0)
+
+        nx = ny.Cross(nz)
+        ny = nz.Cross(nx)
+        nx.Normalized()
+        ny.Normalized()
+        nz.Normalized()
+
+        print("(%f, %f, %f" % (nx[0], nx[1], nx[2]))
+        print("(%f, %f, %f" % (ny[0], ny[1], ny[2]))
+        print("(%f, %f, %f" % (nz[0], nz[1], nz[2]))
+
+        matrix = self.DestinationTransformNode.GetMatrixTransformToParent()
+        matrix.SetElement(0, 0, nx[0])
+        matrix.SetElement(1, 0, nx[1])
+        matrix.SetElement(2, 0, nx[2])
+        matrix.SetElement(0, 1, ny[0])
+        matrix.SetElement(1, 1, ny[1])
+        matrix.SetElement(2, 1, ny[2])
+        matrix.SetElement(0, 2, nz[0])
+        matrix.SetElement(1, 2, nz[1])
+        matrix.SetElement(2, 2, nz[2])
+        matrix.SetElement(0, 3, pos1[0])
+        matrix.SetElement(1, 3, pos1[1])
+        matrix.SetElement(2, 3, pos1[2])
+
+        self.DestinationTransformNode.SetMatrixTransformToParent(matrix)
+      
       
   def activateEvent(self, srcNode, destNode):
     if (srcNode and destNode):
-      self.SourceTransformNode = srcNode
+      #self.SourceTransformNode = srcNode
+      self.SourceFiducialNode = srcNode
       self.DestinationTransformNode = destNode
-      self.tag = self.SourceTransformNode.AddObserver('ModifiedEvent', self.convertTransform)
+      #self.tag = self.SourceTransformNode.AddObserver('ModifiedEvent', self.convertTransform)
+      self.tag = self.SourceFiducialNode.AddObserver('ModifiedEvent', self.convertTransform)
 
   def deactivateEvent(self):
-    if (self.SourceTransformNode):
-      self.SourceTransformNode.RemoveObserver(self.tag)
-      self.SourceTransformNode = None
+    #if (self.SourceTransformNode):
+    if (self.SourceFiducialNode):
+      #self.SourceTransformNode.RemoveObserver(self.tag)
+      self.SourceFiducialNode.RemoveObserver(self.tag)
+      #self.SourceTransformNode = None
+      self.SourceFiducialNode = None
       self.DestinationTransformNode = None
 
